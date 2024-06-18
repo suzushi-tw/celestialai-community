@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id    String @id @unique //matches kinde user id
+  email String @unique
+
+  Chat Chat[]
+  File    File[]
+  Notion Notion[]
+  Collection  Chatbot[]
+  setting Setting[]
+
+  AdvanceAI Int @default(0)
+  Credits   Int @default(0)
+  Chatbot   Int @default(0)
+  Filenum   Int @default(0)
+}
+
+model Setting {
+  id   String @id @default(cuid())
+  Scroll Boolean @default(true)
+  AI String @default("gpt-3.5-turbo")
+
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+model Chatbot { 
+  id   String @id @default(cuid())
+  name String
+  index String
+
+  filename String []
+  fileId   String []
+
+  Chatbotlist Chatbotlist[]
+
+  createdAt DateTime @default(now())
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+model Chatbotlist {
+  id String @id @default(cuid())
+  name String
+
+  Chatmessage Chatbotmessage[]
+
+  createdAt DateTime @default(now())
+
+  Chatbot   Chatbot? @relation(fields: [chatbotId], references: [id])
+  chatbotId String
+}
+
+model Chatbotmessage {
+  id String @id @default(cuid())
+  content String @db.Text()
+  createdAt DateTime @default(now())
+  role      Role     @default(user)
+  Chatbot   Chatbotlist? @relation(fields: [chatbotlistId], references: [id])
+  chatbotlistId String
+}
+
+model Notion{
+  accessToken String @id
+  workspaceId String
+  workspaceName String
+  page Json
+
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+enum UploadStatus {
+  PENDING
+  PROCESSING
+  FAILED
+  SUCCESS
+}
+
+model File {
+  id   String @id @default(cuid())
+  name String
+
+  url      String
+  key      String
+  type     String @default("file")
+  uploadStatus UploadStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+
+model Chat {
+  id String @id @default(cuid())
+  name String
+
+  Chatmessage Chatmessage[]
+  createdAt DateTime @default(now())
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+enum Role {
+  user
+  assistant
+}
+
+model Chatmessage {
+  id String @id @default(cuid())
+  content String @db.Text()
+  createdAt DateTime @default(now())
+  role      Role     @default(user)
+  Chat      Chat?    @relation(fields: [chatId], references: [id])
+  chatId    String
+}
+
+
+
+
+
